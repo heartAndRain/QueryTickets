@@ -4,57 +4,84 @@ class Tickets
         private $from;
         private $to;
         private $go_time;
-        private $gc=FALSE;
-        private $dc=FALSE;
-        private $zc=FALSE;
-        private $tc=FALSE;
-        private $kc=FALSE;
-        private $oc=FALSE;
-        private $query_student=FALSE;
+        
+        private $gc;
+        private $dc;
+        private $zc;
+        private $tc;
+        private $kc;
+        
+        private $oc;
+        private $query_stu=FALSE;          //default: query nomal
+        private $return_json=TRUE;         //default: return json
 
-        public $query_stat=0;        //success: 1 ,fail: 0
+        public $query_stat=0;              //success: 1 ,fail: 0
 
-        public function __construct($from,$to,$go_time,$cc_array,$query_student)
+        public function __construct($from,$to,$go_time,$type_array)
                 {
                         $this->from=$from;
                         $this->to=$to;
                         $this->go_time=$go_time;
-                        $this->gc=$cc_array['gc'];
-                        $this->dc=$cc_array['dc'];
-                        $this->zc=$cc_array['zc'];
-                        $this->tc=$cc_array['tc'];
-                        $this->kc=$cc_array['kc'];
-                        $this->oc=$cc_array['oc'];
-                        $this->query_student=$query_student;
+                        $this->gc=$type_array['gc'];
+                        $this->dc=$type_array['dc'];
+                        $this->zc=$type_array['zc'];
+                        $this->tc=$type_array['tc'];
+                        $this->kc=$type_array['kc'];
+                        $this->oc=$type_array['oc'];
+                }
+        public function set_query_stu()
+                {
+                        $this->query_stu=TRUE;
+                }
+        public function set_return_xml()
+                {
+                        $this->return_json=FALSE;
                 }
         public function query()
-                {
-                        if($this->query_student)
-                                {
+                {  
+                        if(!isset($this->from)||!isset($this->to)||!isset($this->go_time))
+                        {
+                                echo 'lack of parameter!';
+                                exit;
+                        }                   
+                        //get station code
+                        $from_c=$this->get_station_code($this->from);
+                        $to_c=$this->get_station_code($this->to);
 
-                                }
+                        //check if query student
+                        if(!$this->query_stu)
+                        {
+                                $query_str="https://kyfw.12306.cn/otn/lcxxcx/query?purpose_codes=ADULT"."&queryDate=".$this->go_time."&from_station=".$from_c."&to_station=".$to_c;
+                        }
                         else
-                                {
-                                        $from_c=$this->get_station_code($this->from);
-                                        $to_c=$this->get_station_code($this->to);
-                                       
-                                        if($from_c!=FALSE&&$to_c!=FALSE)
-                                        {
-                                       
-                                                $query_str="https://kyfw.12306.cn/otn/lcxxcx/query?purpose_codes=ADULT"."&queryDate=".$this->go_time."&from_station=".$from_c."&to_station=".$to_c;
-                                                $result_str=$this->curl_get($query_str);
-                                                $json_array=json_decode($result_str,TRUE);
-                                                print_r($json_array);
-                                        }
-                                        else
-                                        {
-                                                echo  'invalid station name';
-                                       
-                                        }
-                                        
-                                        
+                        {
+                                $query_str="https://kyfw.12306.cn/otn/lcxxcx/query?purpose_codes=0X00"."&queryDate=".$this->go_time."&from_station=".$from_c."&to_station=".$to_c;
+                        }
 
-                                }
+                        $result_str=$this->curl_get($query_str);
+
+                        //check the curl query is successful
+                        if($result_str==-1)
+                        {
+                                echo 'curl failed';
+                                exit;
+                        }
+                        else
+                        {
+                                $result_array=json_decode($result_str,TRUE); 
+
+                        }
+
+                        //check if return json or xml
+                        if($this->return_json)
+                        {
+                                $this->encode_json($result_array);
+                        }
+                        else
+                        {
+                               
+                                echo 'xml';
+                        }                                                                                                       
                 }
         private function curl_get($query_str)
                 {
@@ -78,9 +105,29 @@ class Tickets
                         }
                         else
                         {
-                                return FALSE;
+                                echo 'invalid station name!';
+                                exit;
                         }
                         
                 }
+        private function encode_json($info_array)
+        {
+                if($info_array['httpstatus']==200)
+                {
+                        echo json_encode($info_array['data']['datas']);
+                }
+                else
+                {
+                        echo '12306 server error';
+                        exit;
+                }
+                
+                //return $json_str;
+        }
+        private function encode_xml($info_array)
+        {
+                $xml= new A2Xml();
+                echo $xml->toXml($info_array);
+        }
 }
 ?>
