@@ -1,66 +1,67 @@
 <?php
 require_once("Tickets.class.php");
+//echo phpinfo();
+//exit;
+if(isset($_GET['from'])&&isset($_GET['to'])&&isset($_GET['gotime']))
+{
+    $from=$_GET['from'];
+    $to=$_GET['to'];
+    $go_time=$_GET['gotime'];
+}
+else
+{
+    $return_arry=array("status"=>0,"message"=>"failed","datas"=>array());
+    echo json_encode($return_arry);
+    exit;
+}
 
-@$from=$_GET['from'];
-@$to=$_GET['to'];
-@$go_time=$_GET['gotime'];
+$ts =new Tickets($from,$to,$go_time);
+header("Content-type:text/html;charset=utf-8");
 
-@$gc=$_GET['gc'];
-@$dc=$_GET['dc'];
-@$zc=$_GET['zc'];
-@$tc=$_GET['tc'];
-@$kc=$_GET['kc'];
-@$oc=$_GET['oc'];
+//返回类型: json xml
+if(isset($_GET['type'])&&isset($_GET['people']))
+{
+    $ts->query($_GET['people'], $_GET['type']);
+}
+ else {
+     exit;
+    
+}
 
-@$query_stu=$_GET['stu'];
-
-@$return_xml=$_GET['xml'];
-
+//查询限制类型数组
+// all:所有 gc:高铁 dc:动车 zc:直达 tc:特快 kc:普快 oc:其它
 $type_array=array('all'=>TRUE,'gc'=>FALSE,'dc'=>FALSE,'zc'=>FALSE,'tc'=>FALSE,'kc'=>FALSE,'oc'=>FALSE);
 
-if(isset($gc))
+if(isset($_GET['gc']))
 {
         $type_array['all']=FALSE;
         $type_array['gc']=TRUE;
 }
-if(isset($dc))
+if(isset($_GET['dc']))
 {
         $type_array['all']=FALSE;
         $type_array['dc']=TRUE;
 }
-if(isset($zc))
+if(isset($_GET['zc']))
 {
         $type_array['all']=FALSE;
         $type_array['zc']=TRUE;
 }
-if(isset($tc))
+if(isset($_GET['tc']))
 {
         $type_array['all']=FALSE;
         $type_array['tc']=TRUE;
 }
-if(isset($kc))
+if(isset($_GET['kc']))
 {
         $type_array['all']=FALSE;
         $type_array['kc']=TRUE;
 }
-if(isset($oc))
+if(isset($_GET['oc']))
 {
         $type_array['all']=FALSE;
         $type_array['oc']=TRUE;
 }
 
-$ts =new Tickets($from,$to,$go_time,$type_array);
 
-if (isset($query_stu)&&$query_stu==1) 
-{
-        $ts->set_query_stu();
-}
-if(isset($return_xml)&&$return_xml==1)
-{
-        $ts->set_return_xml();
-}
 
-header("Content-type:text/html;charset=utf-8");
-
-$ts->query();
-?>
