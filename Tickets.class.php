@@ -39,15 +39,9 @@ class Tickets
                         $result_str=$this->curl_get($query_str);
 
                         //check the curl query is successful
-                        if($result_str==-1)
-                        {
-                               $this->show($this->query_stat, "There is something wrong with 12306!", array());
-                                exit;
-                        }
-                        else
-                        {
+                        
                                 $result_array=json_decode($result_str,TRUE); 
-                        }
+                        
 
                         //check if return json or xml
                         if($return_type=="json")
