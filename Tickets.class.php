@@ -20,7 +20,8 @@ class Tickets
                         $to_c="";
                         $this->get_station_code($this->from,$from_c);
                         $this->get_station_code($this->to,$to_c);
-                        
+
+                       
                         //check the type of people
                         if($people=="adu")
                         {
@@ -35,14 +36,11 @@ class Tickets
                             $this->show($this->query_stat, "The type of people is wrong!", array());
                             exit;
                         }
-
+                         
                         $result_str=$this->curl_get($query_str);
-
+             
                         //check the curl query is successful
-                        
-                                $result_array=json_decode($result_str,TRUE); 
-                        
-
+                        $result_array=json_decode($result_str,TRUE); 
                         //check if return json or xml
                         if($return_type=="json")
                         {
@@ -52,7 +50,7 @@ class Tickets
                         else if($return_type=="xml")
                         {
                                
-                                echo 'xml';
+                              
                         } 
                         else
                         {
@@ -76,7 +74,7 @@ class Tickets
                         curl_close($ch);
                         return $str;
                 }
-        private function get_station_code($station,$station_c)
+        private function get_station_code($station,&$station_c)
                 {
                         $json_str=file_get_contents("station_h.json");
                         $json_array=json_decode($json_str,TRUE);
