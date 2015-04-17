@@ -18,9 +18,12 @@ class Tickets
                         //get station code
                         $from_c="";
                         $to_c="";
-                        $this->get_station_code($this->from,$from_c);
-                        $this->get_station_code($this->to,$to_c);
-
+                        if(!$this->get_station_code($this->from,$from_c)||
+                        !$this->get_station_code($this->to,$to_c))
+			{ 
+				$this->show($return_type,$this->query_stat,"Invalid station name!",array());
+				exit;		
+                        }
                        
                         //check the type of people
                         if($people=="adu")
@@ -33,7 +36,7 @@ class Tickets
                         }
                         else
                         {
-                            $this->show($this->query_stat, "The type of people is wrong!", array());
+                            $this->show($return_type,$this->query_stat, "The type of people is wrong!", array());
                             exit;
                         }
                          
@@ -42,25 +45,32 @@ class Tickets
                         //check the curl query is successful
                         $result_array=json_decode($result_str,TRUE); 
                         //check if return json or xml
-                        if($return_type=="json")
+                        if($return_type=="json"||$return_type=="xml")
                         {
                                 $this->query_stat=1;
-                                $this->show($this->query_stat,"ok", $result_array[data][datas]);
+                                $this->show($return_type,$this->query_stat,"ok", $result_array['data']['datas']);
                         }
-                        else if($return_type=="xml")
-                        {
-                               
-                              
-                        } 
                         else
                         {
-                            $this->show($this->query_stat, "No such of return type", array());
+                            $this->show($return_type,$this->query_stat, "No such of return type", array());
                         }
                 }
-        private function show($status,$message,$datas)
+        private function show($type,$status,$message,$datas)
         {
             $tmp_arry=array("status"=>$status,"message"=>$message,"datas"=>$datas);
-            echo json_encode($tmp_arry);
+            if($type=="json")
+            {
+             echo json_encode($tmp_arry,JSON_UNESCAPED_UNICODE);
+	    }
+	    else
+		{
+		$xml="<?xml version=\"1.0\" encoding=\"UTF-8\" ?>";
+		$xml.="<root>";
+	        $this->xml_encode($tmp_arry,$xml);
+		$xml.="</root>";
+		header("Content-type: xml,charset=utf-8");
+		echo $xml;
+		}
         }
 
         private function curl_get($query_str)
@@ -81,17 +91,23 @@ class Tickets
                         if(array_key_exists($station, $json_array))
                         {
                                 $station_c=$json_array[$station];
+				return TRUE;
                         }
                         else
                         {
-                            $this->show($this->query_stat, "Invalid station name!", array());                           
-                            exit;
+                            return FALSE;
                         }        
                 }
        
-        private function encode_xml($info_array)
-        {
-               
-        }
+       private  function xml_encode($array,&$xml)
+             { 
+	        foreach ($array as $key => $value) {
+		  $key=is_numeric($key)?"case".$key:$key;
+		  $xml.="<".$key.">";
+		  $value=is_array($value)?$this->xml_encode($value,$xml):$value;
+		  $xml.=$value."</".$key.">";
+	       }
+	        return;
+             }  
 }
-?>
+

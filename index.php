@@ -10,8 +10,6 @@ if(isset($_GET['from'])&&isset($_GET['to'])&&isset($_GET['gotime']))
 }
 else
 {
-    $return_arry=array("status"=>0,"message"=>"failed","datas"=>array());
-    echo json_encode($return_arry);
     exit;
 }
 
